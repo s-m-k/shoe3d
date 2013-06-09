@@ -1,0 +1,11 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl arch49_cork
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.398431 0.398431 0.398431
+Ks 0.019608 0.019608 0.019608
+Ni 1.000000
+d 1.000000
+illum 2
