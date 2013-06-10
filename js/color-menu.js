@@ -1,19 +1,55 @@
 (function () {
     'use strict';
-    var menu = jQuery('#color-menu'),
+    var props = jQuery({}),
         selector = jQuery('#layer-selector'),
-        colorPicker = jQuery('#color-picker');
+        colorPicker = jQuery('#color-picker'),
+        materials = {};
 
-    function update(layers) {
-        var layer, sortedLayers;
+
+    function generateMaterialPalette(materials) {
+        var i, colorTile, thumbnail;
+
+        colorPicker.html('');
+
+        for (i = 0; i < materials.length; i += 1) {
+            colorTile = jQuery('<li />', {
+                'class': 'color',
+                'data-material': materials[i]
+            });
+
+            thumbnail = 'img/thumbnails/' + materials[i] + '.jpg';
+            colorTile.css('background', 'url(' + thumbnail + ')');
+
+            colorPicker.append(colorTile);
+        }
+    }
+
+    props.update = function (layers) {
+        var layer, sortedLayers,
+            option;
 
         selector.html('');
+        materials = {};
 
-        sortedLayers = layers.sort();
+        sortedLayers = layers.sort(function (a, b) {
+            return a.name > b.name ? 1 : -1;
+        });
 
         for (layer = 0; layer < sortedLayers.length; layer += 1) {
-            selector.append(jQuery('<option>').html(sortedLayers[layer]));
+            option = jQuery('<option>', {
+                'value': sortedLayers[layer].name
+            }).html(sortedLayers[layer].name);
+
+            materials[sortedLayers[layer].name] = sortedLayers[layer].materials;
+
+            selector.append(option);
         }
+
+        generateMaterialPalette(materials[selector.val()]);
+    }
+
+    props.selectLayer = function (name) {
+        selector.val(name).change();
     }
 
     function getSelectedLayer() {
@@ -23,28 +59,25 @@
     }
 
     colorPicker.on('click', '.color', function (event) {
-        var colorNumber = parseInt(jQuery(this).data('color'), 16);
+        var materialName = jQuery(this).data('material');
         event.preventDefault();
 
-        menu.trigger({
-           type: 'colorchange',
-           color: colorNumber,
+        props.trigger({
+           type: 'materialchange',
+           materialName: materialName,
            layerName: getSelectedLayer()
         });
     });
 
-    function initializeColors() {
-        colorPicker.find('.color').each(function () {
-            jQuery(this).css({
-                backgroundColor: jQuery(this).data('color').replace('0x', '#')
-            })
+    selector.on('change', function (event) {
+
+        generateMaterialPalette(materials[selector.val()]);
+
+        props.trigger({
+            type: 'layerchange',
+            layerName: getSelectedLayer()
         });
-    }
+    });
 
-    initializeColors();
-
-    shoeApp.colorMenu = {
-        update: update,
-        domElement: menu
-    };
+    shoeApp.colorMenu = props;
 }());

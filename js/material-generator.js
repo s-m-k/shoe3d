@@ -17,12 +17,21 @@
     }
 
     function createMaterial(matDef, callback) {
-        var matParams = {
-                color: matDef.color === undefined ? 0xffffff : matDef.color,
-                shiniess: matDef.shiniess === undefined ? 0xffffff : matDef.shiniess,
-                specular: matDef.specular === undefined ? 0xffffff : matDef.specular
-            },
-            loadingMonitor = new THREE.LoadingMonitor();
+        var matParams,
+            loadingMonitor;
+
+        if (matDef.cachedMaterial) {
+            callback(matDef.cachedMaterial);
+            return;
+        }
+
+        matParams = {
+            color: matDef.color === undefined ? 0xffffff : matDef.color,
+            shiniess: matDef.shiniess === undefined ? 0xffffff : matDef.shiniess,
+            specular: matDef.specular === undefined ? 0xffffff : matDef.specular
+        };
+
+        loadingMonitor = new THREE.LoadingMonitor();
 
         if (matDef.texture) {
             loadingMonitor.add(loadTexture(matDef.texture, function (texture) {
@@ -46,10 +55,12 @@
 
         if (matDef.texture || matDef.normalmap) {
             loadingMonitor.addEventListener('load', function () {
-                callback(new THREE.MeshPhongMaterial(matParams));
+                matDef.cachedMaterial = new THREE.MeshPhongMaterial(matParams);
+                callback(matDef.cachedMaterial);
             }, false);
         } else {
-            callback(new THREE.MeshPhongMaterial(matParams));
+            matDef.cachedMaterial = new THREE.MeshPhongMaterial(matParams);
+            callback(matDef.cachedMaterial);
         }
     }
 

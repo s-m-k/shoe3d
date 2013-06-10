@@ -12,10 +12,12 @@
         scene,
         camera,
         light,
+        renderTimeout = null,
         cameraRotationY = 90,
         cameraRotationX = 0,
         cameraDist = 8,
         viewedObject = null,
+        flashMaterial,
         models = {},
         materials = {};
 
@@ -39,7 +41,12 @@
     }
 
     function render() {
-        postprocessing.render();
+        clearTimeout(renderTimeout);
+
+        renderTimeout = setTimeout(function () {
+            postprocessing.render();
+            renderTimeout = null;
+        }, 0);
     }
 
     function updateCamera() {
@@ -122,22 +129,31 @@
 
     function loadModel(modelName, callback) {
         var model = models[modelName], layerName, layer,
-            layerNames = [], totalToLoad = 0, layersLoading = 0;
+            layerProps = [], totalToLoad = 0, layersLoading = 0;
 
         viewedObject = new THREE.Object3D();
         viewedObject.position.set(0, 0, 0);
         viewedObject.rotationAutoUpdate = true;
+        viewedObject.shoeMaterials = {};
         viewedObject.shoeLayers = {};
 
         document.querySelector('#shoe-wrapper').setAttribute('class', 'loading');
 
         function loaderHandler(layerName, layer) {
             return function (geometry) {
-                shoeApp.materialGenerator.createMaterial(materials[layer.material], function (material) {
+                shoeApp.materialGenerator.createMaterial(materials[layer.materials[0]], function (material) {
                     var mesh = new THREE.Mesh(geometry, material);
+
+                    mesh.shoeLayerName = layerName;
+
                     viewedObject.add(mesh);
-                    viewedObject.shoeLayers[layerName] = material;
-                    layerNames.push(layerName);
+                    viewedObject.shoeMaterials[layerName] = material;
+                    viewedObject.shoeLayers[layerName] = mesh;
+
+                    layerProps.push({
+                        name: layerName,
+                        materials: layer.materials
+                    });
 
                     layersLoading -= 1;
 
@@ -146,7 +162,7 @@
                     if (layersLoading === 0 && callback) {
                         document.querySelector('#shoe-wrapper').setAttribute('class', '');
                         render();
-                        callback(layerNames);
+                        callback(layerProps);
                     }
                 });
             };
@@ -169,9 +185,56 @@
         scene.add(viewedObject);
     }
 
+    function pickLayer(mouseCoord) {
+        var projector = new THREE.Projector(),
+            ray, layerName, model, meshes, objects;
+
+        ray = projector.pickingRay(new THREE.Vector3(mouseCoord.x, mouseCoord.y, 0), camera);
+
+        model = viewedObject.shoeLayers;
+        meshes = [];
+
+        for (layerName in model) {
+            if (model.hasOwnProperty(layerName)) {
+                meshes.push(model[layerName]);
+            }
+        }
+
+        objects = ray.intersectObjects(meshes, true);
+
+        return objects.length > 0 ? objects[0].object.shoeLayerName : null;
+    }
+
+    function flashLayer(layerName) {
+        var layerMesh = viewedObject.shoeLayers[layerName];
+
+        if (layerMesh) {
+            shoeApp.materialGenerator.createMaterial(flashMaterial, function (material) {
+                var clonedMesh = layerMesh.clone();
+
+                material.transparent = true;
+
+                clonedMesh.material = material;
+                scene.add(clonedMesh);
+
+                shoeApp.animate({
+                    duration: 500,
+                    step: function (progress) {
+                        clonedMesh.material.opacity = 1 - progress;
+                        render();
+                    },
+                    complete: function () {
+                        scene.remove(clonedMesh);
+                    }
+                });
+            });
+        }
+    }
+
     function initialize(configuration) {
         models = configuration.models;
         materials = configuration.materials;
+        flashMaterial = configuration.flashMaterial;
 
         initializeLoaders();
         initializeRenderer();
@@ -199,9 +262,11 @@
         render();
     }
 
-    function changeLayerColor(layerName, color) {
-        viewedObject.shoeLayers[layerName].color = new THREE.Color(color);
-        render();
+    function changeLayerMaterial(layerName, materialName) {
+        shoeApp.materialGenerator.createMaterial(materials[materialName], function (material) {
+            viewedObject.shoeLayers[layerName].material = material;
+            render();
+        });
     }
 
     shoeApp.shoe3D = {
@@ -209,7 +274,9 @@
         rotateX: rotateX,
         rotateY: rotateY,
         zoom: zoom,
-        changeLayerColor: changeLayerColor,
+        pickLayer: pickLayer,
+        flashLayer: flashLayer,
+        changeLayerMaterial: changeLayerMaterial,
         loadModel: loadModel
     };
 }());

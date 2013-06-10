@@ -9,8 +9,8 @@
 }
 
 #color-picker .color {
-    width: 32px;
-    height: 32px;
+    width: 48px;
+    height: 48px;
 
     border: 1px solid black;
 }
@@ -57,4 +57,61 @@
     position: absolute;
     left: 0;
     bottom: 0;
+}
+
+#nav-buttons {
+    width: 320px;
+    height: 180px;
+    position: fixed;
+    right: 0;
+    bottom: 32px;
+}
+
+#nav-buttons * {
+    width: 64px;
+    height: 64px;
+    margin-left: -32px;
+    margin-top: -32px;
+    background: grey;
+    display: block;
+    color: white;
+    text-decoration: none;
+    text-align: center;
+    line-height: 64px;
+}
+
+.rotate-left {
+    position: absolute;
+    top: 50%;
+    left: 0;
+}
+
+.rotate-right {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+}
+
+.rotate-up {
+    position: absolute;
+    top: 0;
+    left: 25%;
+}
+
+.rotate-down {
+    position: absolute;
+    top: 100%;
+    left: 25%;
+}
+
+.zoom-in {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.zoom-out {
+    position: absolute;
+    right: 0;
+    top: 100%;
 }
