@@ -13,7 +13,7 @@
                 bumpMap: 'img/textures/demo1/shoeline_bump.jpg',
                 bumpScale: 0.05,
                 color: 0xffffff,
-                shiniess: 0x666666,
+                shininess: 10,
                 specular: 0x333333
             },
             demo1Tie2: {
@@ -21,55 +21,55 @@
                 bumpMap: 'img/textures/demo1/shoeline_bump.jpg',
                 bumpScale: 0.05,
                 color: 0xffffff,
-                shiniess: 0x666666,
+                shininess: 10,
                 specular: 0x333333
             },
             demo1Sole: {
                 texture: 'img/textures/demo1/sole.jpg',
                 color: 0xffffff,
-                shiniess: 0x444444,
-                specular: 0x333333
+                shininess: 15,
+                specular: 0x888888
             },
             demo1ShoeOuter: {
                 texture: 'img/textures/demo1/shoeouter.jpg',
                 bumpMap: 'img/textures/demo1/shoeouter_bump.jpg',
-                bumpScale: 0.03,
+                bumpScale: 0.015,
                 color: 0x8f553f,
-                shiniess: 0x111111,
-                specular: 0x444444
+                shininess: 100,
+                specular: 0x999999
             },
             demo1ShoeOuter2: {
                 texture: 'img/textures/demo1/shoeouter.jpg',
                 bumpMap: 'img/textures/demo1/shoeouter_bump.jpg',
-                bumpScale: 0.03,
+                bumpScale: 0.015,
                 color: 0x21553f,
-                shiniess: 0x111111,
-                specular: 0x444444
+                shininess: 100,
+                specular: 0x999999
             },
             tiger: {
                 texture: 'img/textures/demo1/tiger.jpg',
                 bumpMap: 'img/textures/demo1/tiger_bump.jpg',
-                bumpScale: 0.07,
+                bumpScale: 0.035,
                 color: 0xffffff,
-                shiniess: 0x444444,
-                specular: 0x999999
+                shininess: 70,
+                specular: 0xdddddd
             },
             demo1ShoeLine: {
                 color: 0xAA7F6D,
-                shiniess: 0x000000,
+                shininess: 0,
                 specular: 0x2a2a2a
             },
             demo1ShoeInner: {
                 texture: 'img/textures/demo1/shoeinner.jpg',
                 bumpMap: 'img/textures/demo1/shoeouter_bump.jpg',
-                bumpScale: 0.01,
+                bumpScale: 0.02,
                 color: 0xffffff,
-                shiniess: 0x000000,
-                specular: 0x2a2a2a
+                shininess: 15,
+                specular: 0x888888
             },
             demo1ShoeRivet: {
                 color: 0xEDCF86,
-                shiniess: 0xffffff,
+                shininess: 0xffffff,
                 specular: 0xffffff
             }
         },
@@ -179,6 +179,18 @@
         });
     };
 
+    function pickLayer(event) {
+        var dimensions = {
+                width: jQuery('#shoe-canvas').width(),
+                height: jQuery('#shoe-canvas').height()
+            };
+
+        return shoeApp.shoe3D.pickLayer({
+            x: 2 * event.pageX / dimensions.width - 1,
+            y: - 2 * event.pageY / dimensions.height + 1
+        });
+    }
+
     function startApplication() {
         var oldX = 0, oldY = 0,
             mousePressed = false;
@@ -204,20 +216,19 @@
             }
         });
 
-        jQuery('#shoe-canvas').on('click', function (event) {
-            var layerName, dimensions = {
-                    width: jQuery('#shoe-canvas').width(),
-                    height: jQuery('#shoe-canvas').height()
-                };
+        jQuery('#shoe-canvas').on('mousemove', function (event) {
+            var layerName;
 
-            layerName = shoeApp.shoe3D.pickLayer({
-                x: 2 * event.pageX / dimensions.width - 1,
-                y: - 2 * event.pageY / dimensions.height + 1
-            });
-
-            if (layerName) {
-                shoeApp.colorMenu.selectLayer(layerName);
+            if (!mousePressed) {
+                layerName = pickLayer(event);
+                shoeApp.shoe3D.highlightLayer(layerName);
             }
+        });
+
+        jQuery('#shoe-canvas').on('click', function (event) {
+            var layerName = pickLayer(event);
+
+            shoeApp.colorMenu.selectLayer(layerName);
         });
 
         jQuery(window).on('contextmenu', function (event) {

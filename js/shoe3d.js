@@ -12,6 +12,7 @@
         scene,
         camera,
         light,
+        highlight,
         renderTimeout = null,
         cameraRotationY = 90,
         cameraRotationX = 0,
@@ -105,13 +106,17 @@
         scene = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(75, config.width / config.height, 0.1, 1000);
 
-        ambient = new THREE.AmbientLight(0x000000);
+        ambient = new THREE.AmbientLight(0x444444);
         light = new THREE.DirectionalLight(0xffffff, 1);
+
+        scene.fog = new THREE.FogExp2(0xffffff, 0.025);
 
         light.position.set(0, 1, 2);
 
         scene.add(ambient);
         scene.add(light);
+
+        renderer.setClearColorHex(0xffffff, 1);
 
         updateCamera();
         initializePostprocessing();
@@ -205,18 +210,24 @@
         return objects.length > 0 ? objects[0].object.shoeLayerName : null;
     }
 
+    function createHighlight(layerMesh, callback) {
+        shoeApp.materialGenerator.createMaterial(flashMaterial, function (material) {
+            var clonedMesh = layerMesh.clone();
+
+            material.transparent = true;
+
+            clonedMesh.material = material;
+            scene.add(clonedMesh);
+
+            callback(clonedMesh);
+        });
+    }
+
     function flashLayer(layerName) {
         var layerMesh = viewedObject.shoeLayers[layerName];
 
         if (layerMesh) {
-            shoeApp.materialGenerator.createMaterial(flashMaterial, function (material) {
-                var clonedMesh = layerMesh.clone();
-
-                material.transparent = true;
-
-                clonedMesh.material = material;
-                scene.add(clonedMesh);
-
+            createHighlight(layerMesh, function (clonedMesh) {
                 shoeApp.animate({
                     duration: 500,
                     step: function (progress) {
@@ -231,10 +242,40 @@
         }
     }
 
+    function highlightLayer(layerName) {
+        var layerMesh = viewedObject.shoeLayers[layerName];
+
+        if (layerMesh) {
+            if (!highlight || highlight.layerName !== layerName) {
+                if (highlight) {
+                    scene.remove(highlight.mesh);
+                }
+
+                highlight = {
+                    layerName: layerName
+                };
+
+                createHighlight(layerMesh, function (clonedMesh) {
+                    clonedMesh.material.opacity = 0.25;
+                    highlight.mesh = clonedMesh;
+                });
+
+                render();
+            }
+        } else if (highlight) {
+            scene.remove(highlight.mesh);
+            highlight = null;
+
+            render();
+        }
+    }
+
     function initialize(configuration) {
         models = configuration.models;
         materials = configuration.materials;
         flashMaterial = configuration.flashMaterial;
+
+        flashMaterial.noCache = true;
 
         initializeLoaders();
         initializeRenderer();
@@ -276,6 +317,7 @@
         zoom: zoom,
         pickLayer: pickLayer,
         flashLayer: flashLayer,
+        highlightLayer: highlightLayer,
         changeLayerMaterial: changeLayerMaterial,
         loadModel: loadModel
     };

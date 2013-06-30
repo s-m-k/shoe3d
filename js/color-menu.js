@@ -5,22 +5,23 @@
         colorPicker = jQuery('#color-picker'),
         materials = {};
 
-
     function generateMaterialPalette(materials) {
         var i, colorTile, thumbnail;
 
         colorPicker.html('');
 
-        for (i = 0; i < materials.length; i += 1) {
-            colorTile = jQuery('<li />', {
-                'class': 'color',
-                'data-material': materials[i]
-            });
+        if (materials) {
+            for (i = 0; i < materials.length; i += 1) {
+                colorTile = jQuery('<li />', {
+                    'class': 'color',
+                    'data-material': materials[i]
+                });
 
-            thumbnail = 'img/thumbnails/' + materials[i] + '.jpg';
-            colorTile.css('background', 'url(' + thumbnail + ')');
+                thumbnail = 'img/thumbnails/' + materials[i] + '.jpg';
+                colorTile.css('background', 'url(' + thumbnail + ')');
 
-            colorPicker.append(colorTile);
+                colorPicker.append(colorTile);
+            }
         }
     }
 

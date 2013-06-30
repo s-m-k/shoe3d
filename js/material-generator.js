@@ -20,14 +20,14 @@
         var matParams,
             loadingMonitor;
 
-        if (matDef.cachedMaterial) {
+        if (!matDef.noCache && matDef.cachedMaterial) {
             callback(matDef.cachedMaterial);
             return;
         }
 
         matParams = {
             color: matDef.color === undefined ? 0xffffff : matDef.color,
-            shiniess: matDef.shiniess === undefined ? 0xffffff : matDef.shiniess,
+            shininess: matDef.shininess === undefined ? 0xffffff : matDef.shininess,
             specular: matDef.specular === undefined ? 0xffffff : matDef.specular
         };
 
