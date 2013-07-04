@@ -25,6 +25,12 @@
         }
     }
 
+    function getSelectedLayer() {
+        var selectedOption = selector.find('option:selected');
+
+        return selectedOption.text();
+    }
+
     props.update = function (layers) {
         var layer, sortedLayers,
             option;
@@ -47,17 +53,11 @@
         }
 
         generateMaterialPalette(materials[selector.val()]);
-    }
+    };
 
     props.selectLayer = function (name) {
         selector.val(name).change();
-    }
-
-    function getSelectedLayer() {
-        var selectedOption = selector.find('option:selected');
-
-        return selectedOption.text();
-    }
+    };
 
     colorPicker.on('click', '.color', function (event) {
         var materialName = jQuery(this).data('material');

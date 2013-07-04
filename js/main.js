@@ -177,7 +177,7 @@
                 }
             });
         });
-    };
+    }
 
     function pickLayer(event) {
         var dimensions = {
@@ -187,7 +187,7 @@
 
         return shoeApp.shoe3D.pickLayer({
             x: 2 * event.pageX / dimensions.width - 1,
-            y: - 2 * event.pageY / dimensions.height + 1
+            y: -2 * event.pageY / dimensions.height + 1
         });
     }
 
@@ -260,22 +260,25 @@
     }
 
     function handleFailure() {
-        alert('Zainstaluj plugin IEWebGL!');
+        window.alert('Zainstaluj plugin IEWebGL!');
+    }
+
+    function injectThreeJSWebGLHelper() {
+        WebGLHelper.CreateGLCanvas(document.getElementById('shoe-viewer'),
+        'shoe-canvas', false, function () {
+            jQuery.getScript('js/lib/three.js', function () {
+                jQuery.getScript('js/lib/three.postprocessing.js', function () {
+                    jQuery.getScript('js/shaders.js', function () {
+                        startApplication();
+                    });
+                });
+            });
+        }, handleFailure);
     }
 
     jQuery.ajaxSetup({
         cache: true
     });
 
-    WebGLHelper.CreateGLCanvas(document.getElementById('shoe-viewer'),
-            'shoe-canvas', false, function () {
-                jQuery.getScript('js/lib/three.js', function () {
-                    jQuery.getScript('js/lib/three.postprocessing.js', function () {
-                        jQuery.getScript('js/shaders.js', function () {
-                            startApplication();
-                        });
-                    });
-                });
-            }, handleFailure);
-
+    injectThreeJSWebGLHelper();
 }());
